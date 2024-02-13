@@ -8,6 +8,7 @@ import '../service/payment_history_service.dart';
 class PaymentHistoryProvider extends ChangeNotifier {
   bool? isLoading;
   PaymentHistory? paymentHistory;
+  List<PaymentHistory> paymentHistoryList = [];
   List<PayTypes> payTypes = [];
   List<SubData> data = [];
   List<PayTypes> payTypesForSearch = [];
@@ -50,18 +51,15 @@ class PaymentHistoryProvider extends ChangeNotifier {
     if (paymentHistory != null) {
       payTypes = paymentHistory!.data?.payTypes as List<PayTypes>;
       data = paymentHistory!.data?.payments?.data as List<SubData>;
-
-      payTypesForSearch.addAll(payTypes);
-      dataForSearch.addAll(data);
     }
     notifyListeners();
   }
 
-/*Future<void> getPaymentHistory2(LoginResponse response) async {
+Future<void> getPaymentHistory2(LoginResponse response) async {
     searchData = [];
     paymentHistory = null;
     isLoading = null;
-    await PaymentHistoryService.fetch(response).then((value) {
+    await PaymentHistoryService.getByPage(response,1).then((value) {
       if (value != null) {
         paymentHistory = value;
         isLoading = true;
@@ -93,13 +91,13 @@ class PaymentHistoryProvider extends ChangeNotifier {
         }
       }
       for (int i = 0; i < paymentHistoryList.length; i++) {
-        payTypes.addAll(paymentHistoryList[i].data?.payTypes as List<PayTypes>);
-        data.addAll(
+        payTypesForSearch.addAll(paymentHistoryList[i].data?.payTypes as List<PayTypes>);
+        dataForSearch.addAll(
             paymentHistoryList[i].data?.payments?.data as List<SubData>);
       }
     }
     notifyListeners();
-  }*/
+  }
 }
 
 final paymentHistoryProvider = ChangeNotifierProvider(

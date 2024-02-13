@@ -27,11 +27,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   var loginHive = Hive.box('login');
   List<SubData> dataList = [];
   int page = 1;
+  LoginResponse? response;
 
   @override
   void didChangeDependencies() async {
     if (onTabSearch == false && first) {
+
+      LoginResponseHive hive = loginHive.values.toList().cast()[0];
+
+      response = LoginResponse(
+        status: hive.status,
+        accessToken: hive.accessToken,
+        tokenType: hive.tokenType,
+        expiresIn: hive.expiresIn,
+      );
+
       await fetchData(page);
+      await ref
+          .read(paymentHistoryProvider.notifier)
+          .getPaymentHistory2(response!);
       scrollController.addListener(_scrollListener);
     }
     super.didChangeDependencies();
@@ -52,18 +66,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> fetchData(int pageKey) async {
-    LoginResponseHive hive = loginHive.values.toList().cast()[0];
-
-    LoginResponse response = LoginResponse(
-      status: hive.status,
-      accessToken: hive.accessToken,
-      tokenType: hive.tokenType,
-      expiresIn: hive.expiresIn,
-    );
-
     await ref
         .read(paymentHistoryProvider.notifier)
-        .getPaymentHistory(response, pageKey);
+        .getPaymentHistory(response!, pageKey);
 
     if (ref.watch(paymentHistoryProvider).data.isNotEmpty) {
       dataList.addAll(ref.watch(paymentHistoryProvider).data);
