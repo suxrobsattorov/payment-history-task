@@ -87,7 +87,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       isLoading: watch.isLoading,
                       isLoadingMore: isLoadingMore,
                       dataTypeIsSearch: true,
-                      payTypes: watch.payTypes,
+                      payTypes: watch.payTypesForSearch,
                       data: watch.searchData,
                       scrollController: scrollController,
                     )

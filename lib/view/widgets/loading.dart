@@ -66,28 +66,39 @@ class Loading extends StatelessWidget {
             right: 6,
             bottom: 20,
           ),
-          child: ListView.builder(
-            controller: scrollController,
-            itemCount: isLoadingMore ? data.length + 1 : data.length,
-            itemBuilder: (context, index) {
-              if (index < data.length) {
-                return PaymentDetails(
-                  index: index,
-                  payTypes: payTypes,
-                  data: data[index],
-                );
-              } else {
-                return const Padding(
-                  padding: EdgeInsets.only(bottom: 30),
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.mainColor,
-                    ),
-                  ),
-                );
-              }
-            },
-          ),
+          child: dataTypeIsSearch
+              ? ListView.builder(
+                  itemCount: data.length,
+                  itemBuilder: (context, index) {
+                    return PaymentDetails(
+                      index: index,
+                      payTypes: payTypes,
+                      data: data[index],
+                    );
+                  },
+                )
+              : ListView.builder(
+                  controller: scrollController,
+                  itemCount: isLoadingMore ? data.length + 1 : data.length,
+                  itemBuilder: (context, index) {
+                    if (index < data.length) {
+                      return PaymentDetails(
+                        index: index,
+                        payTypes: payTypes,
+                        data: data[index],
+                      );
+                    } else {
+                      return const Padding(
+                        padding: EdgeInsets.only(bottom: 30),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.mainColor,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
         );
       }
     }
