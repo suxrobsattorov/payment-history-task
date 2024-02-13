@@ -21,6 +21,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final scrollController = ScrollController();
   bool onTabSearch = false;
+  bool backSearch = false;
   bool first = true;
   bool isLoadingMore = false;
   var loginHive = Hive.box('login');
@@ -90,14 +91,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       data: watch.searchData,
                       scrollController: scrollController,
                     )
-                  : Loading(
-                      isLoading: watch.isLoading,
-                      isLoadingMore: isLoadingMore,
-                      dataTypeIsSearch: false,
-                      payTypes: watch.payTypes,
-                      data: dataList,
-                      scrollController: scrollController,
-                    ),
+                  : backSearch
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.mainColor,
+                          ),
+                        )
+                      : Loading(
+                          isLoading: watch.isLoading,
+                          isLoadingMore: isLoadingMore,
+                          dataTypeIsSearch: false,
+                          payTypes: watch.payTypes,
+                          data: dataList,
+                          scrollController: scrollController,
+                        ),
               const SizedBox(height: 30),
             ],
           ),
@@ -129,7 +136,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 first = false;
                 page = 1;
                 dataList = [];
+                setState(() {
+                  backSearch = true;
+                });
                 await fetchData(page);
+                backSearch = false;
                 scrollController.addListener(_scrollListener);
               });
             },
