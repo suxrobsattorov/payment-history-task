@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:payment_history_task/hive/login_adapter.dart';
 import 'package:payment_history_task/view/constants/Colors.dart';
 import 'package:payment_history_task/view/screens/login_screen.dart';
 
@@ -14,8 +17,15 @@ class MyHttpOverrides extends HttpOverrides {
   }
 }
 
-void main() {
+void main() async {
   HttpOverrides.global = MyHttpOverrides();
+
+  WidgetsFlutterBinding.ensureInitialized();
+  final appDocumentDirectory = await getApplicationDocumentsDirectory();
+  Hive.init(appDocumentDirectory.path);
+  Hive.registerAdapter(LoginAdapter());
+  await Hive.openBox('login');
+
   runApp(const MyApp());
 }
 
@@ -32,7 +42,6 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: AppColors.mainColor),
           useMaterial3: true,
         ),
-        // home: const LoginScreen(),
         home: const LoginScreen(),
       ),
     );

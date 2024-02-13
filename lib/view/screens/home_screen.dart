@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
+import 'package:payment_history_task/hive/login_response_hive.dart';
 import 'package:payment_history_task/model/login_response.dart';
-import 'package:payment_history_task/provider/login_provider.dart';
+import 'package:payment_history_task/model/payment_history.dart';
 import 'package:payment_history_task/provider/payment_history_provider.dart';
 import 'package:payment_history_task/view/constants/Colors.dart';
 import 'package:payment_history_task/view/constants/images.dart';
@@ -17,16 +19,54 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final scrollController = ScrollController();
   bool onTabSearch = false;
   bool first = true;
+  bool isLoadingMore = false;
+  var loginHive = Hive.box('login');
+  List<SubData> dataList = [];
+  int page = 1;
 
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies() async {
     if (onTabSearch == false && first) {
-      LoginResponse response = ref.watch(loginProvider.notifier).response!;
-      ref.read(paymentHistoryProvider.notifier).getPaymentHistory(response);
+      await fetchData(page);
+      scrollController.addListener(_scrollListener);
     }
     super.didChangeDependencies();
+  }
+
+  Future<void> _scrollListener() async {
+    if (scrollController.position.pixels ==
+        scrollController.position.maxScrollExtent) {
+      setState(() {
+        isLoadingMore = true;
+      });
+      page += 1;
+      await fetchData(page);
+      setState(() {
+        isLoadingMore = false;
+      });
+    }
+  }
+
+  Future<void> fetchData(int pageKey) async {
+    LoginResponseHive hive = loginHive.values.toList().cast()[0];
+
+    LoginResponse response = LoginResponse(
+      status: hive.status,
+      accessToken: hive.accessToken,
+      tokenType: hive.tokenType,
+      expiresIn: hive.expiresIn,
+    );
+
+    await ref
+        .read(paymentHistoryProvider.notifier)
+        .getPaymentHistory(response, pageKey);
+
+    if (ref.watch(paymentHistoryProvider).data.isNotEmpty) {
+      dataList.addAll(ref.watch(paymentHistoryProvider).data);
+    }
   }
 
   @override
@@ -44,13 +84,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onTabSearch
                   ? Loading(
                       isLoading: watch.isLoading,
+                      isLoadingMore: isLoadingMore,
+                      dataTypeIsSearch: true,
                       payTypes: watch.payTypes,
                       data: watch.searchData,
+                      scrollController: scrollController,
                     )
                   : Loading(
                       isLoading: watch.isLoading,
+                      isLoadingMore: isLoadingMore,
+                      dataTypeIsSearch: false,
                       payTypes: watch.payTypes,
-                      data: watch.data,
+                      data: dataList,
+                      scrollController: scrollController,
                     ),
               const SizedBox(height: 30),
             ],
@@ -78,16 +124,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           InkWell(
             onTap: () {
-              setState(() {
+              setState(() async {
                 onTabSearch = false;
                 first = false;
-                if (!first) {
-                  LoginResponse response =
-                      ref.watch(loginProvider.notifier).response!;
-                  ref
-                      .read(paymentHistoryProvider.notifier)
-                      .getPaymentHistory(response);
-                }
+                page = 1;
+                dataList = [];
+                await fetchData(page);
+                scrollController.addListener(_scrollListener);
               });
             },
             child: Image.asset(
@@ -110,7 +153,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 border: InputBorder.none,
               ),
               onChanged: (value) {
-                ref.read(paymentHistoryProvider.notifier).search(value);
+                if (value.isNotEmpty) {
+                  ref.read(paymentHistoryProvider.notifier).search(value);
+                } else {
+                  setState(() {
+                    ref.read(paymentHistoryProvider.notifier).empty();
+                  });
+                }
               },
             ),
           ),
@@ -162,9 +211,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               const SizedBox(width: 20),
               InkWell(
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const LoginScreen(),
-                  ));
+                  logOut();
                 },
                 child: Image.asset(
                   Images.logout,
@@ -178,6 +225,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void logOut() {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Chiqish'),
+          content: const Text('Profildan chiqmoqchimisiz!'),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                  child: const Text('Yo\'q'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ));
+                  },
+                  child: const Text('Ha'),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 }

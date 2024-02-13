@@ -1,27 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:payment_history_task/provider/payment_history_provider.dart';
 import 'package:payment_history_task/view/constants/Colors.dart';
 
 import '../../model/payment_history.dart';
 import 'payment_details.dart';
 
 // ignore: must_be_immutable
-class Loading extends ConsumerWidget {
+class Loading extends StatelessWidget {
+  ScrollController scrollController;
   bool? isLoading;
-  List<PayTypes> payTypes = [];
-  List<SubData> data = [];
+  bool isLoadingMore;
+  bool dataTypeIsSearch;
+  List<PayTypes> payTypes;
+  List<SubData> data;
 
   Loading({
     super.key,
     required this.isLoading,
+    required this.isLoadingMore,
+    required this.dataTypeIsSearch,
     required this.payTypes,
     required this.data,
+    required this.scrollController,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     if (isLoading == null) {
       return const Center(
         child: CircularProgressIndicator(
@@ -40,8 +44,7 @@ class Loading extends ConsumerWidget {
         ),
       );
     } else {
-      // ignore: unnecessary_null_comparison
-      if (ref.watch(paymentHistoryProvider).paymentHistory == null) {
+      if (data.isEmpty && !dataTypeIsSearch) {
         return Center(
           child: Text(
             'To\'lovlar mavjud emas',
@@ -64,14 +67,25 @@ class Loading extends ConsumerWidget {
             bottom: 20,
           ),
           child: ListView.builder(
-            scrollDirection: Axis.vertical,
-            itemCount: data.length,
+            controller: scrollController,
+            itemCount: isLoadingMore ? data.length + 1 : data.length,
             itemBuilder: (context, index) {
-              return PaymentDetails(
-                index: index,
-                payTypes: payTypes,
-                data: data[index],
-              );
+              if (index < data.length) {
+                return PaymentDetails(
+                  index: index,
+                  payTypes: payTypes,
+                  data: data[index],
+                );
+              } else {
+                return const Padding(
+                  padding: EdgeInsets.only(bottom: 30),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.mainColor,
+                    ),
+                  ),
+                );
+              }
             },
           ),
         );

@@ -8,15 +8,20 @@ import '../service/payment_history_service.dart';
 class PaymentHistoryProvider extends ChangeNotifier {
   bool? isLoading;
   PaymentHistory? paymentHistory;
-  List<PaymentHistory> paymentHistoryList = [];
   List<PayTypes> payTypes = [];
   List<SubData> data = [];
+  List<PayTypes> payTypesForSearch = [];
+  List<SubData> dataForSearch = [];
   List<SubData> searchData = [];
+
+  void empty() {
+    searchData = [];
+  }
 
   void search(String lastname) {
     searchData = [];
-    if (data.isNotEmpty && payTypes.isNotEmpty) {
-      for (SubData s in data) {
+    if (dataForSearch.isNotEmpty && payTypesForSearch.isNotEmpty) {
+      for (SubData s in dataForSearch) {
         if (s.student!.lastName!
             .toLowerCase()
             .startsWith(lastname.toLowerCase())) {
@@ -27,11 +32,33 @@ class PaymentHistoryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> getPaymentHistory(LoginResponse response) async {
+  Future<void> getPaymentHistory(LoginResponse response, int page) async {
     searchData = [];
     data = [];
     payTypes = [];
-    paymentHistoryList = [];
+    await PaymentHistoryService.getByPage(response, page).then((value) {
+      if (value != null) {
+        paymentHistory = value;
+        isLoading = true;
+        notifyListeners();
+      } else {
+        isLoading = false;
+        notifyListeners();
+      }
+    });
+
+    if (paymentHistory != null) {
+      payTypes = paymentHistory!.data?.payTypes as List<PayTypes>;
+      data = paymentHistory!.data?.payments?.data as List<SubData>;
+
+      payTypesForSearch.addAll(payTypes);
+      dataForSearch.addAll(data);
+    }
+    notifyListeners();
+  }
+
+/*Future<void> getPaymentHistory2(LoginResponse response) async {
+    searchData = [];
     paymentHistory = null;
     isLoading = null;
     await PaymentHistoryService.fetch(response).then((value) {
@@ -72,7 +99,7 @@ class PaymentHistoryProvider extends ChangeNotifier {
       }
     }
     notifyListeners();
-  }
+  }*/
 }
 
 final paymentHistoryProvider = ChangeNotifierProvider(
