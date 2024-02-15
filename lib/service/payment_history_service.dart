@@ -2,12 +2,10 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../model/login_response.dart';
 import '../model/payment_history.dart';
 
 class PaymentHistoryService {
-  static Future<PaymentHistory?> getByPage(
-      LoginResponse loginResponse, int page) async {
+  static Future<PaymentHistory?> getByPage(String token, int page) async {
     final url = Uri.parse(
         'https://back.intalim.uz/v2/api/get-payment-history?page=$page');
     try {
@@ -15,8 +13,7 @@ class PaymentHistoryService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization':
-              '${loginResponse.tokenType} ${loginResponse.accessToken}',
+          'Authorization': 'bearer $token',
         },
       );
       if (response.statusCode == 200) {

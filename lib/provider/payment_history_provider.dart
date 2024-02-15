@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/login_response.dart';
 import '../model/payment_history.dart';
 import '../service/payment_history_service.dart';
 
@@ -33,11 +32,11 @@ class PaymentHistoryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> getPaymentHistory(LoginResponse response, int page) async {
+  Future<void> getPaymentHistory(String token, int page) async {
     searchData = [];
     data = [];
     payTypes = [];
-    await PaymentHistoryService.getByPage(response, page).then((value) {
+    await PaymentHistoryService.getByPage(token, page).then((value) {
       if (value != null) {
         paymentHistory = value;
         isLoading = true;
@@ -55,11 +54,14 @@ class PaymentHistoryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-Future<void> getPaymentHistory2(LoginResponse response) async {
+  Future<void> getPaymentHistory2(String token) async {
     searchData = [];
+    dataForSearch = [];
+    payTypesForSearch = [];
+    paymentHistoryList = [];
     paymentHistory = null;
     isLoading = null;
-    await PaymentHistoryService.getByPage(response,1).then((value) {
+    await PaymentHistoryService.getByPage(token, 1).then((value) {
       if (value != null) {
         paymentHistory = value;
         isLoading = true;
@@ -83,7 +85,7 @@ Future<void> getPaymentHistory2(LoginResponse response) async {
 
       if (pageCount > 0) {
         for (int i = 2; i <= pageCount; i++) {
-          await PaymentHistoryService.getByPage(response, i).then((value) {
+          await PaymentHistoryService.getByPage(token, i).then((value) {
             if (value != null) {
               paymentHistoryList.add(value);
             }
@@ -91,7 +93,8 @@ Future<void> getPaymentHistory2(LoginResponse response) async {
         }
       }
       for (int i = 0; i < paymentHistoryList.length; i++) {
-        payTypesForSearch.addAll(paymentHistoryList[i].data?.payTypes as List<PayTypes>);
+        payTypesForSearch
+            .addAll(paymentHistoryList[i].data?.payTypes as List<PayTypes>);
         dataForSearch.addAll(
             paymentHistoryList[i].data?.payments?.data as List<SubData>);
       }

@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
-import 'package:payment_history_task/hive/login_response_hive.dart';
-import 'package:payment_history_task/model/login_response.dart';
 import 'package:payment_history_task/model/payment_history.dart';
+import 'package:payment_history_task/provider/login_provider.dart';
 import 'package:payment_history_task/provider/payment_history_provider.dart';
 import 'package:payment_history_task/view/constants/Colors.dart';
 import 'package:payment_history_task/view/constants/images.dart';
-import 'package:payment_history_task/view/screens/login_screen.dart';
 import 'package:payment_history_task/view/widgets/loading.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -20,34 +18,28 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final scrollController = ScrollController();
-  bool onTabSearch = false;
-  bool backSearch = false;
-  bool first = true;
-  bool isLoadingMore = false;
   var loginHive = Hive.box('login');
+  bool isLoadingMore = false;
+  bool onTabSearch = false;
+  bool first = true;
+  bool backSearch = false;
   List<SubData> dataList = [];
   int page = 1;
-  LoginResponse? response;
+  String? token;
 
   @override
   void didChangeDependencies() async {
-    if (onTabSearch == false && first) {
-
-      LoginResponseHive hive = loginHive.values.toList().cast()[0];
-
-      response = LoginResponse(
-        status: hive.status,
-        accessToken: hive.accessToken,
-        tokenType: hive.tokenType,
-        expiresIn: hive.expiresIn,
-      );
+    if (first && !onTabSearch) {
+      token = ref.watch(loginProvider.notifier).token;
 
       await fetchData(page);
       await ref
           .read(paymentHistoryProvider.notifier)
-          .getPaymentHistory2(response!);
+          .getPaymentHistory2(token!);
+
       scrollController.addListener(_scrollListener);
     }
+
     super.didChangeDependencies();
   }
 
@@ -68,7 +60,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> fetchData(int pageKey) async {
     await ref
         .read(paymentHistoryProvider.notifier)
-        .getPaymentHistory(response!, pageKey);
+        .getPaymentHistory(token!, pageKey);
 
     if (ref.watch(paymentHistoryProvider).data.isNotEmpty) {
       dataList.addAll(ref.watch(paymentHistoryProvider).data);
@@ -78,6 +70,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     var watch = ref.watch(paymentHistoryProvider);
+    // print(watch.dataForSearch.length);
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -90,7 +83,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onTabSearch
                   ? Loading(
                       isLoading: watch.isLoading,
-                      isLoadingMore: isLoadingMore,
+                      isLoadingMore: false,
                       dataTypeIsSearch: true,
                       payTypes: watch.payTypesForSearch,
                       data: watch.searchData,
@@ -168,6 +161,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 border: InputBorder.none,
               ),
+              autofocus: true,
               onChanged: (value) {
                 if (value.isNotEmpty) {
                   ref.read(paymentHistoryProvider.notifier).search(value);
@@ -263,9 +257,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const LoginScreen(),
-                    ));
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushReplacementNamed('/login');
+                    ref.read(loginProvider.notifier).logout();
                   },
                   child: const Text('Ha'),
                 ),

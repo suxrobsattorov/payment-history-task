@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:payment_history_task/model/login_request.dart';
-import 'package:payment_history_task/view/screens/home_screen.dart';
 import 'package:payment_history_task/view/widgets/input_label.dart';
 
 import '../../provider/login_provider.dart';
+import '../../provider/payment_history_provider.dart';
 import '../constants/Colors.dart';
 
 class AccessForm extends ConsumerStatefulWidget {
@@ -57,9 +57,7 @@ class _AccessFormState extends ConsumerState<AccessForm> {
         var response = await ref.read(loginProvider.notifier).login(request);
         if (response != null) {
           // ignore: use_build_context_synchronously
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => const HomeScreen(),
-          ));
+          Navigator.of(context).pushReplacementNamed('/home');
         } else {
           _showErrorDialog('Login yoki Parol xato!');
         }

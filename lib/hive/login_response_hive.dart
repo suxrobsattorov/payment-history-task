@@ -9,7 +9,7 @@ class LoginResponseHive extends HiveObject {
   @HiveField(2)
   String? tokenType;
   @HiveField(3)
-  int? expiresIn;
+  DateTime? expiresIn;
 
   LoginResponseHive({
     required this.status,

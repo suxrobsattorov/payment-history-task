@@ -8,7 +8,7 @@ class LoginAdapter extends TypeAdapter<LoginResponseHive> {
     final status = reader.read() as int?;
     final accessToken = reader.read() as String?;
     final tokenType = reader.read() as String?;
-    final expiresIn = reader.read() as int?;
+    final expiresIn = reader.read() as DateTime?;
 
     return LoginResponseHive(
       status: status,
