@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:payment_history_task/model/login_request.dart';
-import 'package:payment_history_task/view/widgets/input_label.dart';
 
+import '../../model/login_request.dart';
 import '../../provider/login_provider.dart';
-import '../../provider/payment_history_provider.dart';
 import '../constants/Colors.dart';
+import 'input_label.dart';
+
+final loaderProvider = StateProvider<bool>((ref) => false);
 
 class AccessForm extends ConsumerStatefulWidget {
   const AccessForm({super.key});
@@ -20,8 +21,6 @@ class _AccessFormState extends ConsumerState<AccessForm> {
 
   bool _passwordVisible = false;
 
-  bool _loading = false;
-
   LoginRequest request = LoginRequest(username: '', password: '');
 
   void _showErrorDialog(String message) {
@@ -34,7 +33,7 @@ class _AccessFormState extends ConsumerState<AccessForm> {
           actions: [
             TextButton(
               onPressed: () {
-                _loading = false;
+                ref.read(loaderProvider.notifier).state = false;
                 Navigator.of(ctx).pop();
               },
               child: const Text('Ok!'),
@@ -50,9 +49,7 @@ class _AccessFormState extends ConsumerState<AccessForm> {
         'Kechirasiz xatolik sodir bo\'ldi. Qaytadan o\'rinib ko\'ring.';
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      setState(() {
-        _loading = true;
-      });
+      ref.read(loaderProvider.notifier).state = true;
       try {
         var response = await ref.read(loginProvider.notifier).login(request);
         if (response != null) {
@@ -64,14 +61,13 @@ class _AccessFormState extends ConsumerState<AccessForm> {
       } catch (e) {
         _showErrorDialog(errorMessage);
       }
-      setState(() {
-        _loading = false;
-      });
+      ref.read(loaderProvider.notifier).state = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    print('build');
     return Form(
       key: _formKey,
       child: Container(
@@ -183,7 +179,11 @@ class _AccessFormState extends ConsumerState<AccessForm> {
                 ],
               ),
               const SizedBox(height: 35),
-              _loading ? const CircularProgressIndicator() : login(),
+              Consumer(
+                builder: (context, ref, _) => ref.watch(loaderProvider)
+                    ? const CircularProgressIndicator()
+                    : login(),
+              ),
             ],
           ),
         ),

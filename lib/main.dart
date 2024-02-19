@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:payment_history_task/hive/login_adapter.dart';
-import 'package:payment_history_task/provider/login_provider.dart';
-import 'package:payment_history_task/view/constants/Colors.dart';
-import 'package:payment_history_task/view/screens/home_screen.dart';
-import 'package:payment_history_task/view/screens/login_screen.dart';
+
+import 'hive/login_adapter.dart';
+import 'provider/login_provider.dart';
+import 'view/constants/Colors.dart';
+import 'view/screens/home_screen.dart';
+import 'view/screens/login_screen.dart';
+import 'view/screens/search_screen.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -75,6 +77,7 @@ class MyApp extends StatelessWidget {
           routes: {
             '/login': (context) => const LoginScreen(),
             '/home': (context) => const HomeScreen(),
+            '/search': (context) => const SearchScreen(),
           },
         );
       }),

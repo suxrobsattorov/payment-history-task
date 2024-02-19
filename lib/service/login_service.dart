@@ -1,13 +1,14 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:payment_history_task/model/login_request.dart';
 
+import '../model/login_request.dart';
 import '../model/login_response.dart';
+import 'constants/base_url.dart';
 
 class LoginService {
   static Future<LoginResponse?> fetch(LoginRequest request) async {
-    final url = Uri.parse('https://back.intalim.uz/v2/api/login');
+    final url = Uri.parse('$baseUrl/login');
     try {
       final response = await http.post(
         url,

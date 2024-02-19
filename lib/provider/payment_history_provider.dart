@@ -1,108 +1,42 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../model/payment_history.dart';
+import '../model/search_data.dart';
 import '../service/payment_history_service.dart';
 
-class PaymentHistoryProvider extends ChangeNotifier {
+class PaymentHistoryState {
+  List<SubData> dataList;
+  Data? data;
   bool? isLoading;
-  PaymentHistory? paymentHistory;
-  List<PaymentHistory> paymentHistoryList = [];
-  List<PayTypes> payTypes = [];
-  List<SubData> data = [];
-  List<PayTypes> payTypesForSearch = [];
-  List<SubData> dataForSearch = [];
-  List<SubData> searchData = [];
 
-  void empty() {
-    searchData = [];
+  PaymentHistoryState({
+    required this.dataList,
+    this.data,
+    this.isLoading,
+  });
+}
+
+class PaymentHistoryProvider extends StateNotifier<PaymentHistoryState> {
+  PaymentHistoryProvider() : super(PaymentHistoryState(dataList: []));
+
+  void emptyDataList() {
+    state.dataList = [];
   }
 
-  void search(String lastname) {
-    searchData = [];
-    if (dataForSearch.isNotEmpty && payTypesForSearch.isNotEmpty) {
-      for (SubData s in dataForSearch) {
-        if (s.student!.lastName!
-            .toLowerCase()
-            .startsWith(lastname.toLowerCase())) {
-          searchData.add(s);
-        }
-      }
-    }
-    notifyListeners();
-  }
-
-  Future<void> getPaymentHistory(String token, int page) async {
-    searchData = [];
-    data = [];
-    payTypes = [];
-    await PaymentHistoryService.getByPage(token, page).then((value) {
+  Future<void> getPaymentHistory(String token, int page, String fio) async {
+    await PaymentHistoryService.getByPage(token, page, fio).then((value) {
       if (value != null) {
-        paymentHistory = value;
-        isLoading = true;
-        notifyListeners();
+        state = PaymentHistoryState(
+          dataList: value.data?.subData as List<SubData>,
+          data: value.data,
+          isLoading: true,
+        );
       } else {
-        isLoading = false;
-        notifyListeners();
+        state.isLoading = false;
       }
     });
-
-    if (paymentHistory != null) {
-      payTypes = paymentHistory!.data?.payTypes as List<PayTypes>;
-      data = paymentHistory!.data?.payments?.data as List<SubData>;
-    }
-    notifyListeners();
-  }
-
-  Future<void> getPaymentHistory2(String token) async {
-    searchData = [];
-    dataForSearch = [];
-    payTypesForSearch = [];
-    paymentHistoryList = [];
-    paymentHistory = null;
-    isLoading = null;
-    await PaymentHistoryService.getByPage(token, 1).then((value) {
-      if (value != null) {
-        paymentHistory = value;
-        isLoading = true;
-        notifyListeners();
-      } else {
-        isLoading = false;
-        notifyListeners();
-      }
-    });
-    int pageCount = 0;
-    if (paymentHistory != null &&
-        paymentHistory?.data != null &&
-        paymentHistory?.data?.payments != null) {
-      pageCount = int.parse((paymentHistory!.data!.payments!.total! /
-                  paymentHistory!.data!.payments!.perPage!)
-              .toString()
-              .split('.')[0]) +
-          1;
-
-      paymentHistoryList.add(paymentHistory!);
-
-      if (pageCount > 0) {
-        for (int i = 2; i <= pageCount; i++) {
-          await PaymentHistoryService.getByPage(token, i).then((value) {
-            if (value != null) {
-              paymentHistoryList.add(value);
-            }
-          });
-        }
-      }
-      for (int i = 0; i < paymentHistoryList.length; i++) {
-        payTypesForSearch
-            .addAll(paymentHistoryList[i].data?.payTypes as List<PayTypes>);
-        dataForSearch.addAll(
-            paymentHistoryList[i].data?.payments?.data as List<SubData>);
-      }
-    }
-    notifyListeners();
   }
 }
 
-final paymentHistoryProvider = ChangeNotifierProvider(
+final paymentHistoryProvider = StateNotifierProvider<PaymentHistoryProvider, PaymentHistoryState>(
   (ref) => PaymentHistoryProvider(),
 );

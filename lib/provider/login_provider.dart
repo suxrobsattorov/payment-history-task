@@ -9,15 +9,17 @@ import '../model/login_request.dart';
 import '../model/login_response.dart';
 import '../service/login_service.dart';
 
-class LoginProvider extends ChangeNotifier {
+class LoginProvider extends StateNotifier<LoginResponse?> {
   var loginHive = Hive.box('login');
 
   String? _token;
   DateTime? _expiryDate;
   Timer? _autoLogoutTimer;
 
+  LoginProvider(super.state);
+
   bool get isAuth {
-    return _token!=null;
+    return _token != null;
   }
 
   String? get token {
@@ -30,8 +32,6 @@ class LoginProvider extends ChangeNotifier {
   }
 
   Future<LoginResponse?> login(LoginRequest request) async {
-    LoginResponse? response;
-
     if (loginHive.length > 0) {
       for (int i = 0; i < loginHive.length; i++) {
         loginHive.deleteAt(i);
@@ -40,29 +40,27 @@ class LoginProvider extends ChangeNotifier {
 
     await LoginService.fetch(request).then((value) {
       if (value != null) {
-        response = value;
+        state = value;
         _expiryDate = DateTime.now().add(
-          Duration(seconds: response!.expiresIn!),
+          Duration(seconds: state!.expiresIn!),
         );
-        _token = response!.accessToken;
+        _token = state!.accessToken;
         loginHive.add(
           LoginResponseHive(
-            status: response!.status,
+            status: state!.status,
             accessToken: _token,
-            tokenType: response!.tokenType,
+            tokenType: state!.tokenType,
             expiresIn: _expiryDate,
           ),
         );
         _autoLogout();
-        notifyListeners();
       }
     });
 
-    return response;
+    return state;
   }
 
   Future<bool> autoLogin() async {
-
     if (loginHive.values.toList().cast().isEmpty) {
       return false;
     }
@@ -95,7 +93,6 @@ class LoginProvider extends ChangeNotifier {
       _autoLogoutTimer!.cancel();
       _autoLogoutTimer = null;
     }
-    notifyListeners();
   }
 
   void _autoLogout() {
@@ -108,6 +105,6 @@ class LoginProvider extends ChangeNotifier {
   }
 }
 
-final loginProvider = ChangeNotifierProvider(
-  (ref) => LoginProvider(),
+final loginProvider = StateNotifierProvider(
+  (ref) => LoginProvider(null),
 );

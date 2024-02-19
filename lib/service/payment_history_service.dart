@@ -2,12 +2,14 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../model/payment_history.dart';
+import '../model/search_data.dart';
+import 'constants/base_url.dart';
 
 class PaymentHistoryService {
-  static Future<PaymentHistory?> getByPage(String token, int page) async {
+  static Future<SearchData?> getByPage(
+      String token, int page, String fio) async {
     final url = Uri.parse(
-        'https://back.intalim.uz/v2/api/get-payment-history?page=$page');
+        '$baseUrl/school-payment/debtors-v2?page=$page&fio=$fio');
     try {
       final response = await http.get(
         url,
@@ -17,7 +19,7 @@ class PaymentHistoryService {
         },
       );
       if (response.statusCode == 200) {
-        return PaymentHistory.fromJson(json.decode(response.body));
+        return SearchData.fromJson(json.decode(response.body));
       } else {
         return null;
       }
