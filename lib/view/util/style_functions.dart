@@ -1,8 +1,8 @@
-class StyleFunctions{
-  static String amountStyle(String text) {
+class StyleFunctions {
+  static String amountStyle(String amount) {
     String left = '', left2 = '';
-    for (int i = text.length - 1; i > -1; i--) {
-      left += text[i];
+    for (int i = amount.length - 1; i > -1; i--) {
+      left += amount[i];
     }
     for (int i = 0; i < left.length; i++) {
       left2 += left[i];
@@ -10,10 +10,10 @@ class StyleFunctions{
         left2 += ' ';
       }
     }
-    text = '';
+    amount = '';
     for (int i = left2.length - 1; i > -1; i--) {
-      text += left2[i];
+      amount += left2[i];
     }
-    return text;
+    return amount;
   }
 }

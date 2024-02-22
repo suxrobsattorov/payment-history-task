@@ -73,7 +73,6 @@ class LoginProvider extends StateNotifier<LoginResponse?> {
 
     _token = hive.accessToken;
     _expiryDate = hive.expiresIn;
-    // notifyListeners();
     _autoLogout();
 
     return true;

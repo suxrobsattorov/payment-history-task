@@ -1,15 +1,20 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:payment_history_task/provider/login_provider.dart';
 
-import '../model/search_data.dart';
+import '../model/payment_history.dart';
 import 'constants/base_url.dart';
 
 class PaymentHistoryService {
-  static Future<SearchData?> getByPage(
-      String token, int page, String fio) async {
-    final url = Uri.parse(
-        '$baseUrl/school-payment/debtors-v2?page=$page&fio=$fio');
+  static Future<PaymentHistory?> getByPage(String token, int page,
+      {String? fio}) async {
+    String searchParam = '';
+    if (fio != null) {
+      searchParam = '&fio=$fio';
+    }
+    final url =
+        Uri.parse('$baseUrl/get-payment-history?page=$page$searchParam');
     try {
       final response = await http.get(
         url,
@@ -19,7 +24,7 @@ class PaymentHistoryService {
         },
       );
       if (response.statusCode == 200) {
-        return SearchData.fromJson(json.decode(response.body));
+        return PaymentHistory.fromJson(json.decode(response.body));
       } else {
         return null;
       }

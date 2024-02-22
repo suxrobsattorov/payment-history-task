@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:payment_history_task/view/util/style_functions.dart';
-import 'package:payment_history_task/view/widgets/image_container.dart';
 
-import '../../model/search_data.dart';
+import '../../model/payment_history.dart';
 import '../constants/Colors.dart';
+import '../constants/images.dart';
 
 // ignore: must_be_immutable
 class PaymentDetails extends StatelessWidget {
@@ -17,23 +17,44 @@ class PaymentDetails extends StatelessWidget {
     required this.data,
   });
 
+  String amount = '';
+  String cardImage = '';
+  List<String> cardImages = [
+    Images.visa,
+    Images.uzcard,
+    Images.humo,
+    Images.naqt,
+    Images.p2p,
+  ];
+
+  void selectCardImage() {
+    if (data.payType?.name == 'Plastik karta ( UZCARD)') {
+      cardImage = cardImages[1];
+    } else if (data.payType?.name == 'Plastik karta (HUMO)') {
+      cardImage = cardImages[2];
+    } else if (data.payType?.name == 'Plastik karta (VISA)') {
+      cardImage = cardImages[0];
+    } else if (data.payType?.name == 'Pul o`tkazma(Perechesleniya)') {
+      cardImage = cardImages[4];
+    } else {
+      cardImage = cardImages[3];
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final debt = StyleFunctions.amountStyle(data.debt.toString().split('.')[0]);
-    final educationPrice =
-        StyleFunctions.amountStyle(data.group?.educationPrice.toString() ?? '');
+    amount = StyleFunctions.amountStyle(data.amount.toString());
+    selectCardImage();
     return Container(
       margin: const EdgeInsets.all(8),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
+            color: AppColors.tableBorderColor,
+            blurRadius: 12,
           ),
         ],
       ),
@@ -41,54 +62,20 @@ class PaymentDetails extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${index + 1}. ${data.lastName ?? ''} ${data.firstName ?? ''} ${data.middleName ?? ''}',
+            '${index + 1}. ${data.student?.lastName ?? ''} ${data.student?.firstName ?? ''} ${data.student?.middleName ?? ''}',
             style: GoogleFonts.mulish(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Colors.black,
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  data.group != null && data.group!.eduType != null
-                      ? Text(
-                          data.group?.eduType?.shortName ?? '',
-                          style: GoogleFonts.mulish(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.grey.shade700,
-                          ),
-                        )
-                      : Container(),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Guruh nomi : ',
-                    style: GoogleFonts.mulish(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
-                  ),
-                  data.group != null && data.group!.eduType != null
-                      ? Text(
-                    '  ${data.group!.name}' ?? '',
-                          style: GoogleFonts.mulish(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.grey,
-                          ),
-                        )
-                      : Container(),
-                ],
-              ),
-              data.group != null && data.group!.eduType != null
-                  ? ImageContainer(url: data.group!.eduType!.image)
-                  : Container(),
-            ],
+          Text(
+            data.group?.nameUz ?? '',
+            style: GoogleFonts.mulish(
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              color: Colors.grey,
+            ),
           ),
           const SizedBox(height: 8),
           Container(
@@ -103,48 +90,40 @@ class PaymentDetails extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                  color: Colors.white,
                   borderRadius: BorderRadius.circular(5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.shade200,
-                      blurRadius: 5,
-                      offset: const Offset(-2, 2), // Shadow position
-                    ),
-                  ],
+                  color: Colors.grey.shade100,
                 ),
-                child: Text(
-                  educationPrice,
-                  style: GoogleFonts.mulish(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green.shade400,
+                height: 30,
+                width: 70,
+                child: Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: Image.asset(
+                    cardImage,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue.shade200,
-                      blurRadius: 5,
-                      offset: const Offset(2, 2), // Shadow position
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    amount,
+                    style: GoogleFonts.mulish(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.mainColor,
                     ),
-                  ],
-                ),
-                child: Text(
-                  debt,
-                  style: GoogleFonts.mulish(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.mainColor,
                   ),
-                ),
+                  Text(
+                    'To\'langan vaqt, ${data.createdAt?.split('T')[1].substring(0, 5) ?? ''}',
+                    style: GoogleFonts.mulish(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

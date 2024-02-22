@@ -10,7 +10,6 @@ import 'provider/login_provider.dart';
 import 'view/constants/Colors.dart';
 import 'view/screens/home_screen.dart';
 import 'view/screens/login_screen.dart';
-import 'view/screens/search_screen.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -55,29 +54,25 @@ class MyApp extends StatelessWidget {
             colorScheme: ColorScheme.fromSeed(seedColor: AppColors.mainColor),
             useMaterial3: true,
           ),
-          home: watch.isAuth
-              ? const HomeScreen()
-              : FutureBuilder(
-                  future: watch.autoLogin(),
-                  builder: (c, autoLoginData) {
-                    if (autoLoginData.connectionState ==
-                        ConnectionState.waiting) {
-                      return const Scaffold(
-                        body: Center(
-                          child: CircularProgressIndicator(
-                            backgroundColor: AppColors.mainColor,
-                          ),
-                        ),
-                      );
-                    } else {
-                      return screens(watch.isAuth);
-                    }
-                  },
-                ),
+          home: FutureBuilder(
+            future: watch.autoLogin(),
+            builder: (c, autoLoginData) {
+              if (autoLoginData.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(
+                      backgroundColor: Colors.red,
+                    ),
+                  ),
+                );
+              } else {
+                return screens(watch.isAuth);
+              }
+            },
+          ),
           routes: {
             '/login': (context) => const LoginScreen(),
             '/home': (context) => const HomeScreen(),
-            '/search': (context) => const SearchScreen(),
           },
         );
       }),
