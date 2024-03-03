@@ -56,6 +56,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (!first) {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
+
         ref.read(loadMoreProvider.notifier).state = true;
         await ref.read(paymentHistoryProvider.notifier).loadMoreData(token!);
         ref.read(loadMoreProvider.notifier).state = false;
